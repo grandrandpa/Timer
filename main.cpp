@@ -19,6 +19,8 @@
 #include <cmath>
 
 #include "TimerCpp.h"
+#include "List.h"
+#include "ThreadPool.h"
 
 using namespace std;
 
@@ -733,9 +735,256 @@ void TimerTest()
 }
 
 /////////////////////
+ListNode* ReverseList(ListNode* pHead)
+{
+    ListNode* pReversedHead = nullptr;
+    ListNode* pNode = pHead;
+    ListNode* pPrev = nullptr;
+    while (pNode != nullptr)
+    {
+        ListNode* pNext = pNode->m_pNext;
 
-int main() {
-    TimerTest();
+        if (pNext == nullptr)
+            pReversedHead = pNode;
+
+        pNode->m_pNext = pPrev;
+
+        pPrev = pNode;
+        pNode = pNext;
+    }
+
+    return pReversedHead;
+}
+
+ListNode* TestList(ListNode* pHead)
+{
+    printf("The original list is: \n");
+    PrintList(pHead);
+
+    ListNode* pReversedHead = ReverseList(pHead);
+
+    printf("The reversed list is: \n");
+    PrintList(pReversedHead);
+
+    return pReversedHead;
+}
+
+// 输入的链表有多个结点
+void TestList1()
+{
+    ListNode* pNode1 = CreateListNode(1);
+    ListNode* pNode2 = CreateListNode(2);
+    ListNode* pNode3 = CreateListNode(3);
+    ListNode* pNode4 = CreateListNode(4);
+    ListNode* pNode5 = CreateListNode(5);
+
+    ConnectListNodes(pNode1, pNode2);
+    ConnectListNodes(pNode2, pNode3);
+    ConnectListNodes(pNode3, pNode4);
+    ConnectListNodes(pNode4, pNode5);
+
+    ListNode* pReversedHead = TestList(pNode1);
+
+    DestroyList(pReversedHead);
+}
+
+ListNode* MergeList(ListNode *list1, ListNode *list2)
+{
+    if (list1 == nullptr)
+    {
+        return list2;
+    }
+    if (list2 == nullptr)
+    {
+        return list1;
+    }
+
+    ListNode *pNodeMerge = nullptr;
+    if (list1->m_nValue >= list2->m_nValue)
+    {
+        pNodeMerge = list2;
+        list2 = list2->m_pNext;
+    }
+    else
+    {
+        pNodeMerge = list1;
+        list1 = list1->m_pNext;
+    }
+    ListNode *root = pNodeMerge;
+    while (list1 != nullptr && list2 != nullptr)
+    {
+        if (list2->m_nValue >= list1->m_nValue)
+        {
+            pNodeMerge->m_pNext = list1;
+            pNodeMerge = list1;
+            list1 = list1->m_pNext;
+        }
+        else
+        {
+            pNodeMerge->m_pNext = list2;
+            pNodeMerge = list2;
+            list2 = list2->m_pNext;
+        }
+    }
+
+    if (list1 != nullptr) {
+        pNodeMerge->m_pNext = list1;
+    }
+    if (list2 != nullptr) {
+        pNodeMerge->m_pNext = list2;
+    }
+
+    return root;
+}
+
+ListNode* Merge(ListNode* pHead1, ListNode* pHead2)
+{
+    if (pHead1 == nullptr)
+        return pHead2;
+    else if (pHead2 == nullptr)
+        return pHead1;
+
+    ListNode* pMergedHead = nullptr;
+
+    if (pHead1->m_nValue < pHead2->m_nValue)
+    {
+        pMergedHead = pHead1;
+        pMergedHead->m_pNext = Merge(pHead1->m_pNext, pHead2);
+    }
+    else
+    {
+        pMergedHead = pHead2;
+        pMergedHead->m_pNext = Merge(pHead1, pHead2->m_pNext);
+    }
+
+    return pMergedHead;
+}
+
+ListNode* TestMerge(char* testName, ListNode* pHead1, ListNode* pHead2)
+{
+    if (testName != nullptr)
+        printf("%s begins:\n", testName);
+
+    printf("The first list is:\n");
+    PrintList(pHead1);
+
+    printf("The second list is:\n");
+    PrintList(pHead2);
+
+    printf("The merged list is:\n");
+    ListNode* pMergedHead = MergeList(pHead1, pHead2);
+    PrintList(pMergedHead);
+
+    printf("\n\n");
+
+    return pMergedHead;
+}
+
+// list1: 1->3->5
+// list2: 2->4->6
+void TestMerge1()
+{
+    ListNode* pNode1 = CreateListNode(1);
+    ListNode* pNode3 = CreateListNode(3);
+    ListNode* pNode5 = CreateListNode(5);
+
+    ConnectListNodes(pNode1, pNode3);
+    ConnectListNodes(pNode3, pNode5);
+
+    ListNode* pNode2 = CreateListNode(2);
+    ListNode* pNode4 = CreateListNode(4);
+    ListNode* pNode6 = CreateListNode(6);
+
+    ConnectListNodes(pNode2, pNode4);
+    ConnectListNodes(pNode4, pNode6);
+
+    ListNode* pMergedHead = TestMerge("Test1", pNode1, pNode2);
+
+    DestroyList(pMergedHead);
+}
+
+///////////////////////////
+
+void Permutation(char* pStr, char* pBegin);
+
+void Permutation(char* pStr)
+{
+    if (pStr == nullptr)
+        return;
+
+    Permutation(pStr, pStr);
+}
+
+void Permutation(char* pStr, char* pBegin)
+{
+    if (*pBegin == '\0')
+    {
+        printf("%s\n", pStr);
+    }
+    else
+    {
+        for (char* pCh = pBegin; *pCh != '\0'; ++pCh)
+        {
+            char temp = *pCh;
+            *pCh = *pBegin;
+            *pBegin = temp;
+
+            Permutation(pStr, pBegin + 1);
+
+            temp = *pCh;
+            *pCh = *pBegin;
+            *pBegin = temp;
+        }
+    }
+}
+
+void TestPermutation(char* pStr)
+{
+    if (pStr == nullptr)
+        printf("Test for nullptr begins:\n");
+    else
+        printf("Test for %s begins:\n", pStr);
+
+    Permutation(pStr);
+
+    //printf("\n");
+}
+
+/////////////////////
+
+void TestThreadPool()
+{
+    ThreadPool pool(4);
+    std::vector< std::future<int> > results;
+
+    for (int i = 0; i < 8; ++i) {
+        results.emplace_back (
+            pool.enqueue([i] {
+            std::cout << "hello " << i << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::cout << "world " << i << std::endl;
+            return i*i;
+            })
+        );
+    }
+
+    for (auto && result : results)    //通过future.get()获取返回值
+        std::cout << result.get() << ' ';
+    std::cout << std::endl;
+}
+
+
+void main() {
+    TestThreadPool();
+
+    //char string4[] = "abc";
+    //TestPermutation(string4);
+
+    //TestMerge1();
+
+    //TestList1();
+
+    //TimerTest();
 
     //testOddEven();
 
@@ -830,5 +1079,5 @@ int main() {
     //t.join();
 
     system("pause");
-    return 0;
+    //return 0;
 }
